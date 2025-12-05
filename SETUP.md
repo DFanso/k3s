@@ -285,6 +285,45 @@ ingress:
 
 ---
 
+## Monitoring Stack (Prometheus + Grafana)
+
+The Helm chart includes an optional monitoring stack.
+
+### Enable/Disable Monitoring
+
+In `helm/k3s-app/values.yaml`:
+```yaml
+monitoring:
+  enabled: true   # Set to false to disable
+```
+
+### Access Monitoring UIs
+
+After deployment:
+
+| Service | URL | Default Credentials |
+|---------|-----|---------------------|
+| **Grafana** | `http://YOUR_IP:30030` | admin / admin123 |
+| **Prometheus** | `http://YOUR_IP:30090` | - |
+| **AlertManager** | `http://YOUR_IP:30093` | - |
+
+### Open Firewall Ports
+
+```bash
+sudo ufw allow 30030/tcp  # Grafana
+sudo ufw allow 30090/tcp  # Prometheus
+sudo ufw allow 30093/tcp  # AlertManager
+```
+
+### Custom Metrics
+
+The API exposes Prometheus metrics at `/api/metrics`:
+- `k3s_app_uptime_seconds` - Pod uptime
+- `k3s_app_requests_total` - Total requests
+- `k3s_app_info` - App version and hostname
+
+---
+
 ## Quick Reference
 
 | Action | Command |
@@ -294,3 +333,5 @@ ingress:
 | View logs | `kubectl logs -f deploy/k3s-app-api` |
 | Restart | `kubectl rollout restart deploy/k3s-app-api` |
 | Uninstall | `helm uninstall k3s-app` |
+| Grafana | `http://YOUR_IP:30030` |
+| Prometheus | `http://YOUR_IP:30090` |
