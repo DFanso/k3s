@@ -132,16 +132,17 @@ k3s/
 ├── .github/
 │   └── workflows/
 │       └── deploy.yaml          # CI/CD pipeline
-├── api/
-│   ├── Dockerfile               # API container
-│   ├── main.py                  # FastAPI app
-│   └── requirements.txt
-├── frontend/
-│   ├── Dockerfile               # Frontend container
-│   ├── nginx.conf               # Nginx config
-│   ├── index.html               # Dashboard
-│   ├── styles.css               # Styles
-│   └── app.js                   # JavaScript
+├── app/
+│   ├── api/
+│   │   ├── Dockerfile           # API container
+│   │   ├── main.py              # FastAPI app
+│   │   └── requirements.txt
+│   └── frontend/
+│       ├── Dockerfile           # Frontend container
+│       ├── nginx.conf           # Nginx config
+│       ├── index.html           # Dashboard
+│       ├── styles.css           # Styles
+│       └── app.js               # JavaScript
 ├── helm/
 │   └── k3s-app/
 │       ├── Chart.yaml           # Helm chart metadata

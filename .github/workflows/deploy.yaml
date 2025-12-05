@@ -18,9 +18,9 @@ jobs:
     strategy:
       matrix:
         include:
-          - context: ./frontend
+          - context: ./app/frontend
             image: k3s-frontend
-          - context: ./api
+          - context: ./app/api
             image: k3s-api
 
     steps:
