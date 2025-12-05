@@ -85,8 +85,9 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
 
 # Nginx Ingress Controller (as dependency)
+# Set to false if nginx-ingress is already installed on your cluster
 ingress-nginx:
-  enabled: true
+  enabled: false
   controller:
     service:
       type: LoadBalancer
