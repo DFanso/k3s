@@ -94,7 +94,7 @@ ingress-nginx:
 
 # Monitoring Stack (Prometheus + Grafana)
 monitoring:
-  enabled: true
+  enabled: false
 
 kube-prometheus-stack:
   # Grafana configuration

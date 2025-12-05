@@ -287,19 +287,51 @@ ingress:
 
 ## Monitoring Stack (Prometheus + Grafana)
 
-The Helm chart includes an optional monitoring stack.
+### Option 1: Install Separately (Recommended)
 
-### Enable/Disable Monitoring
+Install monitoring stack separately on your VPS:
 
-In `helm/k3s-app/values.yaml`:
-```yaml
-monitoring:
-  enabled: true   # Set to false to disable
+```bash
+# Add Prometheus helm repo
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+
+# Install kube-prometheus-stack (includes Grafana)
+helm install monitoring prometheus-community/kube-prometheus-stack \
+  --namespace monitoring --create-namespace \
+  --set grafana.service.type=NodePort \
+  --set grafana.service.nodePort=30030 \
+  --set prometheus.service.type=NodePort \
+  --set prometheus.service.nodePort=30090 \
+  --set alertmanager.service.type=NodePort \
+  --set alertmanager.service.nodePort=30093 \
+  --set grafana.adminPassword=admin123
+
+# Wait for pods
+kubectl get pods -n monitoring -w
 ```
 
-### Access Monitoring UIs
+### Option 2: Enable in Helm Chart
 
-After deployment:
+First install CRDs, then enable in values.yaml:
+
+```bash
+# On VPS: Install Prometheus CRDs first
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagerconfigs.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_alertmanagers.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_podmonitors.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_probes.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_prometheusagents.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_prometheuses.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_prometheusrules.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_scrapeconfigs.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_servicemonitors.yaml
+kubectl apply --server-side -f https://raw.githubusercontent.com/prometheus-operator/prometheus-operator/main/example/prometheus-operator-crd/monitoring.coreos.com_thanosrulers.yaml
+```
+
+Then set `monitoring.enabled: true` in values.yaml and push.
+
+### Access Monitoring UIs
 
 | Service | URL | Default Credentials |
 |---------|-----|---------------------|
@@ -315,7 +347,7 @@ sudo ufw allow 30090/tcp  # Prometheus
 sudo ufw allow 30093/tcp  # AlertManager
 ```
 
-### Custom Metrics
+### Custom App Metrics
 
 The API exposes Prometheus metrics at `/api/metrics`:
 - `k3s_app_uptime_seconds` - Pod uptime
