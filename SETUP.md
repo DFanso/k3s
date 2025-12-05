@@ -65,8 +65,9 @@ git push
 **That's it!** GitHub Actions will:
 1. Build Docker images
 2. Push to GitHub Container Registry
-3. Install nginx-ingress (via Helm dependency)
-4. Deploy your app
+3. Deploy your app (and nginx-ingress if `ingress-nginx.enabled: true`)
+
+> **Fresh cluster?** Set `ingress-nginx.enabled: true` in `helm/k3s-app/values.yaml` before pushing.
 
 ---
 
@@ -104,9 +105,20 @@ sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
 sudo ufw allow 6443/tcp
 
+# Install nginx-ingress controller
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm install ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx --create-namespace
+
+# Wait for nginx-ingress to be ready
+kubectl get pods -n ingress-nginx -w
+
 # Get kubeconfig for GitHub (replace YOUR_VPS_IP)
 sudo cat /etc/rancher/k3s/k3s.yaml | sed 's/127.0.0.1/YOUR_VPS_IP/g' | base64 -w 0
 ```
+
+> **Note:** If you install nginx-ingress manually, set `ingress-nginx.enabled: false` in `helm/k3s-app/values.yaml`.
 
 ---
 
@@ -151,12 +163,21 @@ api:
   replicaCount: 3  # Change this
 ```
 
-### Disable Nginx Ingress (if already installed)
+### Nginx Ingress Controller
 
+**For fresh clusters** (no nginx-ingress installed):
 ```yaml
 ingress-nginx:
-  enabled: false
+  enabled: true   # Helm will install nginx-ingress automatically
 ```
+
+**If nginx-ingress is already installed** on your cluster:
+```yaml
+ingress-nginx:
+  enabled: false  # Skip installation, use existing
+```
+
+> ⚠️ **Note:** If you get an error about "IngressClass nginx already exists", set `enabled: false`.
 
 ### Add Environment Variables
 

@@ -44,6 +44,21 @@ if ! grep -q "KUBECONFIG" ~/.bashrc; then
     echo 'export KUBECONFIG=~/.kube/config' >> ~/.bashrc
 fi
 
+# Install Helm if not present
+if ! command -v helm &> /dev/null; then
+    echo -e "\n${YELLOW}📦 Installing Helm...${NC}"
+    curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+fi
+
+# Install nginx-ingress controller
+echo -e "\n${YELLOW}📦 Installing Nginx Ingress Controller...${NC}"
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+helm install ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx --create-namespace \
+  --wait --timeout 5m
+echo -e "${GREEN}✓ Nginx Ingress installed${NC}"
+
 # Open firewall ports
 echo -e "\n${YELLOW}🔥 Configuring firewall...${NC}"
 if command -v ufw &> /dev/null; then
@@ -74,9 +89,13 @@ echo "----------------------------------------"
 echo "${KUBECONFIG_B64}"
 echo "----------------------------------------"
 echo ""
-echo "2. Push your code to trigger deployment"
+echo "2. In helm/k3s-app/values.yaml, ensure:"
+echo "   ingress-nginx:"
+echo "     enabled: false  # Already installed by this script"
 echo ""
-echo "3. After deployment, visit:"
+echo "3. Push your code to trigger deployment"
+echo ""
+echo "4. After deployment, visit:"
 echo "   http://${VPS_IP}/"
 echo ""
 echo "=========================================="
