@@ -11,7 +11,7 @@ frontend:
   replicaCount: 2
   
   image:
-    repository: GITHUB_USERNAME/k3s-frontend
+    repository: dfanso/k3s-frontend
     tag: latest
     pullPolicy: Always
   
@@ -33,7 +33,7 @@ api:
   replicaCount: 2
   
   image:
-    repository: GITHUB_USERNAME/k3s-api
+    repository: dfanso/k3s-api
     tag: latest
     pullPolicy: Always
   
