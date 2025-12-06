@@ -14,6 +14,7 @@ A complete Kubernetes deployment setup with automated CI/CD using GitHub Actions
 ![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-F46800?style=for-the-badge&logo=grafana&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Let's Encrypt](https://img.shields.io/badge/Let's_Encrypt-003A70?style=for-the-badge&logo=letsencrypt&logoColor=white)
 
 ---
 
@@ -21,6 +22,9 @@ A complete Kubernetes deployment setup with automated CI/CD using GitHub Actions
 
 ### Application Dashboard
 ![Application Dashboard](img/app.png)
+
+### SSL Certificate (Let's Encrypt)
+![SSL Certificate](img/ssl.png)
 
 ### K9s Terminal UI
 ![K9s](img/k9s.png)
@@ -65,6 +69,7 @@ A complete Kubernetes deployment setup with automated CI/CD using GitHub Actions
 - **Automated CI/CD** - Push to deploy via GitHub Actions
 - **Helm Charts** - Templated Kubernetes deployments
 - **Nginx Ingress** - Load balancing and routing
+- **SSL/TLS** - Free certificates with Let's Encrypt
 - **Prometheus** - Metrics collection
 - **Grafana** - Beautiful dashboards
 - **Loki** - Log aggregation
@@ -130,7 +135,8 @@ k3s/
 │   ├── values.yaml           # Configuration
 │   └── templates/            # K8s manifests
 ├── scripts/
-│   └── setup-k3s.sh          # VPS setup script
+│   ├── setup-k3s.sh          # VPS setup script
+│   └── setup-ssl.sh          # SSL/TLS setup script
 ├── img/                      # Screenshots
 ├── README.md
 └── SETUP.md                  # Detailed setup guide
@@ -160,6 +166,30 @@ api:
     APP_VERSION: "2.0.0"
     DATABASE_URL: "postgres://..."
 ```
+
+---
+
+## SSL/TLS Setup
+
+### Quick Setup with Script
+
+```bash
+# On your VPS
+chmod +x scripts/setup-ssl.sh
+./scripts/setup-ssl.sh yourdomain.com your@email.com
+```
+
+### Manual Setup
+
+1. Point your domain DNS to your VPS IP
+2. Install cert-manager:
+```bash
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.3/cert-manager.yaml
+```
+3. Update `helm/k3s-app/values.yaml` with your domain and TLS config
+4. Push to deploy
+
+See [SETUP.md](SETUP.md) for detailed SSL instructions.
 
 ---
 

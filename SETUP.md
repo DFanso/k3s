@@ -235,15 +235,39 @@ helm uninstall k3s-app
 
 ---
 
-## SSL/TLS (Optional)
+## SSL/TLS with Let's Encrypt
 
-Add cert-manager for automatic Let's Encrypt certificates:
+### Quick Setup (Recommended)
+
+Use the provided script:
 
 ```bash
-# Install cert-manager
+# On your VPS
+cd /path/to/k3s
+chmod +x scripts/setup-ssl.sh
+./scripts/setup-ssl.sh yourdomain.com your@email.com
+```
+
+The script will:
+1. Install cert-manager
+2. Create Let's Encrypt ClusterIssuer
+3. Create TLS-enabled Ingress
+4. Request SSL certificate automatically
+
+### Manual Setup
+
+#### Step 1: Install cert-manager
+
+```bash
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
 
-# Create issuer
+# Wait for it to be ready
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=300s
+```
+
+#### Step 2: Create ClusterIssuer
+
+```bash
 cat <<EOF | kubectl apply -f -
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -262,25 +286,70 @@ spec:
 EOF
 ```
 
-Then update `values.yaml`:
+#### Step 3: Create TLS Ingress
 
-```yaml
-ingress:
+```bash
+cat <<EOF | kubectl apply -f -
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: k3s-app-tls
   annotations:
-    cert-manager.io/cluster-issuer: letsencrypt-prod
-  hosts:
-    - host: yourdomain.com
-      paths:
-        - path: /api(/|$)(.*)
-          pathType: ImplementationSpecific
-          service: api
-        - path: /
-          pathType: Prefix
-          service: frontend
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
   tls:
-    - secretName: k3s-app-tls
-      hosts:
-        - yourdomain.com
+  - hosts:
+    - yourdomain.com
+    secretName: k3s-app-tls-secret
+  rules:
+  - host: yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: k3s-app-frontend
+            port:
+              number: 80
+EOF
+```
+
+### DNS Configuration
+
+Point your domain to your VPS:
+
+| Type | Name | Value |
+|------|------|-------|
+| A | @ | YOUR_VPS_IP |
+| A | www | YOUR_VPS_IP |
+
+### Verify Certificate
+
+```bash
+# Check certificate status
+kubectl get certificate
+
+# Describe for details
+kubectl describe certificate k3s-app-tls-secret
+
+# Check secret was created
+kubectl get secret k3s-app-tls-secret
+```
+
+### Troubleshooting SSL
+
+```bash
+# Check cert-manager logs
+kubectl logs -n cert-manager deployment/cert-manager
+
+# Check certificate events
+kubectl describe certificaterequest
+
+# Check challenge status
+kubectl get challenges
 ```
 
 ---

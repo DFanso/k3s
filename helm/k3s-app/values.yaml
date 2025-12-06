@@ -60,13 +60,22 @@ ingress:
   enabled: true
   className: nginx
   annotations: {}
+  # For SSL with cert-manager, uncomment and configure:
+  # annotations:
+  #   cert-manager.io/cluster-issuer: letsencrypt-prod
+  #   nginx.ingress.kubernetes.io/ssl-redirect: "true"
   hosts:
-    - host: ""  # Empty for IP-based access
+    - host: ""  # Empty for IP-based access, set your domain for SSL
       paths:
         - path: /
           pathType: Prefix
           service: frontend
+  # TLS configuration - uncomment for SSL
   tls: []
+  # tls:
+  #   - secretName: k3s-app-tls
+  #     hosts:
+  #       - yourdomain.com
 
 # Pod disruption budget
 podDisruptionBudget:

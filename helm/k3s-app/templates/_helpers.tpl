@@ -62,3 +62,4 @@ API name
 {{- printf "%s-api" (include "k3s-app.fullname" .) }}
 {{- end }}
 
+

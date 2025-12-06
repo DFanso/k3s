@@ -42,3 +42,4 @@ spec:
             {{- toYaml .Values.frontend.resources | nindent 12 }}
 {{- end }}
 
+
